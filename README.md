@@ -9,7 +9,7 @@ git remote set-head origin -a |
 
 # explaining
 
-
+-------------------|
 -|dot|G|F|E|D|C|B|A|
 0|
 1|
