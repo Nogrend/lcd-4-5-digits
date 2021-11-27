@@ -73,4 +73,5 @@ void LCD_4_5_Digits::_set_lcd(void)
         shiftOut(_data_pin, _clock_pin, MSBFIRST, _value_to_set_lcd[i]);
         digitalWrite(_latch_pin, HIGH);
     }
+    digitalWrite(_data_pin, HIGH);
 }
