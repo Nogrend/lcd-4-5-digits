@@ -30,9 +30,11 @@ void setup()
 uint16_t counter = 0;
 void loop()
 {
-  counter++;
+  counter += 1;
+  if (counter > 20010)
+    counter = 0;
   lcd.set_value(counter);
   Serial.print("Counter = ");
   Serial.println(counter);
-  delay(500);
+  delay(150);
 }

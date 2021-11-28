@@ -27,6 +27,7 @@ private:
 
     uint8_t _value_to_set_lcd[5] = {0x00, 0x00, 0x00, 0x00, 0x00};
     void _set_lcd(void);
+    void _set_overflow(void);
 
 public:
     LCD_4_5_Digits(uint8_t latch, uint8_t clock, uint8_t data);

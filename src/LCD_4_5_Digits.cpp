@@ -40,27 +40,30 @@ void LCD_4_5_Digits::all_on(void)
 
 void LCD_4_5_Digits::set_value(uint16_t input_value)
 {
-    // 1 0 0 0 0
-    //   1 0 0 0
-    //     1 0 0
-    //       1 0
-    //         1
-    uint8_t tth = 0, th = 0, h = 0, t = 0, u = 0; // ten thousands, thousands,hundreds,tens,units
+    if (input_value <= 19999)
+    {
+        uint8_t tth = 0, th = 0, h = 0, t = 0, u = 0; // ten thousands, thousands,hundreds,tens,units
 
-    u = input_value % 10;
-    t = (input_value / 10) % 10;
-    h = (input_value / 100) % 10;
-    th = input_value / 1000;
+        u = input_value % 10;
+        t = (input_value / 10) % 10;
+        h = (input_value / 100) % 10;
+        th = (input_value / 1000) % 10;
+        tth = input_value / 10000;
 
-    _value_to_set_lcd[4] = _number[u];
-    _value_to_set_lcd[3] = _number[t];
-    _value_to_set_lcd[2] = _number[h];
-    _value_to_set_lcd[1] = _number[th];
+        _value_to_set_lcd[4] = _number[u];
+        _value_to_set_lcd[3] = _number[t];
+        _value_to_set_lcd[2] = _number[h];
+        _value_to_set_lcd[1] = _number[th];
 
-    if (tth > 0)
-        _value_to_set_lcd[0] |= 0b00010000;
+        if (tth > 0)
+            _value_to_set_lcd[0] |= 0b00010000;
+        else
+            _value_to_set_lcd[0] &= ~0b00010000;
+    }
     else
-        _value_to_set_lcd[0] &= ~0b00010000;
+    {
+        _set_overflow();
+    }
 
     _set_lcd();
 }
@@ -74,4 +77,13 @@ void LCD_4_5_Digits::_set_lcd(void)
         digitalWrite(_latch_pin, HIGH);
     }
     digitalWrite(_data_pin, HIGH);
+}
+
+void LCD_4_5_Digits::_set_overflow(void)
+{
+    _value_to_set_lcd[0] = 0x00;
+    for (uint8_t i = 1; i < 5; i++)
+    {
+        _value_to_set_lcd[i] = 0b01000000;
+    }
 }
