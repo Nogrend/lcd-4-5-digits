@@ -38,27 +38,34 @@ void LCD_4_5_Digits::all_on(void)
     _set_lcd();
 }
 
-void LCD_4_5_Digits::set_value(uint16_t input_value)
+void LCD_4_5_Digits::set_value(int16_t input_value)
 {
-    if (input_value <= 19999)
+    if (_is_value_valid(input_value))
     {
-        uint8_t tth = 0, th = 0, h = 0, t = 0, u = 0; // ten thousands, thousands,hundreds,tens,units
+        _set_minus_sign_if_negative_value(input_value);
 
-        u = input_value % 10;
-        t = (input_value / 10) % 10;
-        h = (input_value / 100) % 10;
-        th = (input_value / 1000) % 10;
-        tth = input_value / 10000;
+        _abs_value = abs(input_value);
 
-        _value_to_set_lcd[4] = _number[u];
-        _value_to_set_lcd[3] = _number[t];
-        _value_to_set_lcd[2] = _number[h];
-        _value_to_set_lcd[1] = _number[th];
+        _u = _abs_value % 10;
+        _t = (_abs_value / 10) % 10;
+        _h = (_abs_value / 100) % 10;
+        _th = (_abs_value / 1000) % 10;
+        _tth = _abs_value / 10000;
 
-        if (tth > 0)
+        _value_to_set_lcd[4] = _number[_u];
+        _value_to_set_lcd[3] = _number[_t];
+        _value_to_set_lcd[2] = _number[_h];
+        _value_to_set_lcd[1] = _number[_th];
+
+        if (_tth > 0)
+        {
             _value_to_set_lcd[0] |= 0b00010000;
+        }
         else
+        {
             _value_to_set_lcd[0] &= ~0b00010000;
+            _remove_excess_zeros();
+        }
     }
     else
     {
@@ -85,5 +92,31 @@ void LCD_4_5_Digits::_set_overflow(void)
     for (uint8_t i = 1; i < 5; i++)
     {
         _value_to_set_lcd[i] = 0b01000000;
+    }
+}
+
+void LCD_4_5_Digits::_set_minus_sign_if_negative_value(int16_t value)
+{
+    if (value < 0)
+        _value_to_set_lcd[0] |= 0b00000001;
+    else
+        _value_to_set_lcd[0] &= ~0b00000001;
+}
+
+bool LCD_4_5_Digits::_is_value_valid(int16_t value)
+{
+    if (value >= -19999 && value <= 19999)
+        return true;
+    return false;
+}
+
+void LCD_4_5_Digits::_remove_excess_zeros(void)
+{
+    for (uint8_t i = 1; i < 4; i++)
+    {
+        if (_value_to_set_lcd[i] == _number[0])
+            _value_to_set_lcd[i] = 0b00000000;
+        else
+            break;
     }
 }

@@ -25,9 +25,16 @@ private:
         0b01101111  // "9"
     };
 
+    uint8_t _tth = 0, _th = 0, _h = 0, _t = 0, _u = 0; // ten thousands, thousands,hundreds,tens,units
+
     uint8_t _value_to_set_lcd[5] = {0x00, 0x00, 0x00, 0x00, 0x00};
+    uint16_t _abs_value;
+
     void _set_lcd(void);
     void _set_overflow(void);
+    void _set_minus_sign_if_negative_value(int16_t value);
+    bool _is_value_valid(int16_t value);
+    void _remove_excess_zeros(void);
 
 public:
     LCD_4_5_Digits(uint8_t latch, uint8_t clock, uint8_t data);
@@ -35,7 +42,7 @@ public:
     void init(void);
     void clear(void);
     void all_on(void);
-    void set_value(uint16_t input_value = 0);
+    void set_value(int16_t input_value = 0);
 };
 
 #endif

@@ -27,14 +27,23 @@ void setup()
   lcd.init();
 }
 
-uint16_t counter = 0;
+int16_t max_value = 20010;
+int16_t min_value = -20010;
+
 void loop()
 {
-  counter += 1;
-  if (counter > 20010)
-    counter = 0;
-  lcd.set_value(counter);
-  Serial.print("Counter = ");
-  Serial.println(counter);
-  delay(150);
+  for (int16_t i = max_value; i >= min_value; i--)
+  {
+    lcd.set_value(i);
+    Serial.print("Counter - = ");
+    Serial.println(i);
+    delay(100);
+  }
+  for (int16_t i = min_value; i <= max_value; i++)
+  {
+    lcd.set_value(i);
+    Serial.print("Counter + = ");
+    Serial.println(i);
+    delay(100);
+  }
 }
