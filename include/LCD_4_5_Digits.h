@@ -32,9 +32,9 @@ private:
 
     void _set_lcd(void);
     void _set_overflow(void);
-    void _set_minus_sign_if_negative_value(int16_t value);
+    void _set_minus_sign_if_negative(int16_t value);
     bool _is_value_valid(int16_t value);
-    void _remove_excess_zeros(void);
+    void _remove_unnecessary_zeros(void);
 
 public:
     LCD_4_5_Digits(uint8_t latch, uint8_t clock, uint8_t data);

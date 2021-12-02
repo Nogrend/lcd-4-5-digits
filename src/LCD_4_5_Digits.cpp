@@ -42,7 +42,7 @@ void LCD_4_5_Digits::set_value(int16_t input_value)
 {
     if (_is_value_valid(input_value))
     {
-        _set_minus_sign_if_negative_value(input_value);
+        _set_minus_sign_if_negative(input_value);
 
         _abs_value = abs(input_value);
 
@@ -64,7 +64,7 @@ void LCD_4_5_Digits::set_value(int16_t input_value)
         else
         {
             _value_to_set_lcd[0] &= ~0b00010000;
-            _remove_excess_zeros();
+            _remove_unnecessary_zeros();
         }
     }
     else
@@ -95,7 +95,7 @@ void LCD_4_5_Digits::_set_overflow(void)
     }
 }
 
-void LCD_4_5_Digits::_set_minus_sign_if_negative_value(int16_t value)
+void LCD_4_5_Digits::_set_minus_sign_if_negative(int16_t value)
 {
     if (value < 0)
         _value_to_set_lcd[0] |= 0b00000001;
@@ -110,7 +110,7 @@ bool LCD_4_5_Digits::_is_value_valid(int16_t value)
     return false;
 }
 
-void LCD_4_5_Digits::_remove_excess_zeros(void)
+void LCD_4_5_Digits::_remove_unnecessary_zeros(void)
 {
     for (uint8_t i = 1; i < 4; i++)
     {
