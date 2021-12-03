@@ -27,19 +27,22 @@ void setup()
   lcd.init();
 }
 
-int16_t max_value = 100;
-int16_t min_value = -100;
+int16_t max_value = 20020;
+int16_t min_value = -20020;
 
-uint16_t start_time = 3600;
 void loop()
 {
+  for (uint16_t i = 0; i <= 3600; i++)
+  {
+    lcd.set_timer(i);
+    delay(500);
+  }
+  for (uint16_t i = 0; i >= 3600; i--)
+  {
+    lcd.set_timer(i);
+    delay(500);
+  }
 
-  // lcd.set_timer(start_time);
-  // start_time--;
-  // delay(500);
-
-  // if (start_time == 0)
-  //   start_time = 3600;
   for (int16_t i = min_value; i <= max_value; i++)
   {
     lcd.set_value(i);
