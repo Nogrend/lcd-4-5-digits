@@ -75,7 +75,8 @@ void callback(char *topic, byte *message, unsigned int length)
   if (String(topic) == "stal/cv")
   {
     Serial.print("Changing output to ");
-    Serial.println(messageTemp);
+    Serial.println(messageTemp.toFloat());
+
     lcd.all_on();
   }
 }
