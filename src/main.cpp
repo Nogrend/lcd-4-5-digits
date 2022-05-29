@@ -1,26 +1,14 @@
 #include <Arduino.h>
 #include <LCD_4_5_Digits.h>
-
-#include <ESP8266WiFi.h>
-#include <PubSubClient.h>
+#include <esp8266_gpio_mapping.h>
+#include <DS3231.h>
 #include <Wire.h>
 
-#include <../secrets.h>
-
-const char *ssid = SSID;
-const char *password = PASSWORD;
-const char *mqtt_server = MQTT_SERVER_IP;
+// 0x57
+// 0x68
 
 // prototype
-void callback(char *topic, byte *message, unsigned int length);
-void setup_wifi();
-void reconnect();
-
-WiFiClient espClient;
-PubSubClient client(espClient);
-long lastMsg = 0;
-char msg[50];
-int value = 0;
+// void updateShiftRegister();
 
 // 21, 22, 23 // example
 // 21, 27, 12 // esp32
@@ -33,129 +21,61 @@ int value = 0;
 // uint8_t dataPin = 12;
 
 // for ESP8266 Microcontrollers
-uint8_t latchPin = 5; // 1
-uint8_t clockPin = 4; // 2
-uint8_t dataPin = 2;  // 3
+// uint8_t latchPin = 5; // 1
+// uint8_t clockPin = 4; // 2
+// uint8_t dataPin = 2;  // 3
+
+uint8_t latchPin = D8; // 1
+uint8_t clockPin = D6; // 2
+uint8_t dataPin = D7;  // 3
 
 LCD_4_5_Digits lcd(latchPin, clockPin, dataPin);
+DS3231 real_time_clock;
+
+bool h12Flag;
+bool pmFlag;
 
 void setup()
 {
   Serial.begin(9600);
   lcd.init();
+  Wire.begin();
 
-  setup_wifi();
-  client.setServer(mqtt_server, MQTT_PORT_NUMBER);
-  client.setCallback(callback);
+  delay(5000);
+  Serial.print(real_time_clock.getHour(h12Flag, pmFlag), DEC); // 24-hr
+  Serial.print(":");
+  Serial.print(real_time_clock.getMinute(), DEC);
+  Serial.print(":");
+  Serial.println(real_time_clock.getSecond(), DEC);
+
+  delay(10000);
+
+  Serial.print(real_time_clock.getHour(h12Flag, pmFlag), DEC); // 24-hr
+  Serial.print(":");
+  Serial.print(real_time_clock.getMinute(), DEC);
+  Serial.print(":");
+  Serial.println(real_time_clock.getSecond(), DEC);
+
+  delay(10000);
 }
+
+int16_t max_value = 20010;
+int16_t min_value = -20010;
 
 void loop()
 {
-  if (!client.connected())
-    reconnect();
-
-  client.loop();
-}
-
-//---------------
-void callback(char *topic, byte *message, unsigned int length)
-{
-  Serial.print("Message arrived on topic: ");
-  Serial.print(topic);
-  Serial.print(". Message: ");
-  String messageTemp;
-
-  for (int i = 0; i < length; i++)
+  for (int16_t i = max_value; i >= min_value; i--)
   {
-    Serial.print((char)message[i]);
-    messageTemp += (char)message[i];
+    lcd.set_value(i);
+    Serial.print("Counter - = ");
+    Serial.println(i);
+    delay(100);
   }
-  Serial.println();
-
-  if (String(topic) == "stal/cv")
+  for (int16_t i = min_value; i <= max_value; i++)
   {
-    Serial.print("Changing output to ");
-    Serial.println(messageTemp.toFloat());
-
-    lcd.all_on();
+    lcd.set_value(i);
+    Serial.print("Counter + = ");
+    Serial.println(i);
+    delay(100);
   }
 }
-
-void setup_wifi()
-{
-  delay(10);
-  // We start by connecting to a WiFi network
-  Serial.println();
-  Serial.print("Connecting to ");
-  Serial.println(ssid);
-
-  WiFi.begin(ssid, password);
-
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    delay(500);
-    Serial.print(".");
-  }
-
-  Serial.println("");
-  Serial.println("WiFi connected");
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
-}
-
-void reconnect()
-{
-  // Loop until we're reconnected
-  while (!client.connected())
-  {
-    Serial.print("Attempting MQTT connection...");
-    // Attempt to connect
-    if (client.connect("ESP8266_LCD"))
-    {
-      Serial.println("connected");
-      // Subscribe
-      client.subscribe("stal/cv");
-    }
-    else
-    {
-      Serial.print("failed, rc=");
-      Serial.print(client.state());
-      Serial.println(" try again in 5 seconds");
-      // Wait 5 seconds before retrying
-      delay(5000);
-    }
-  }
-}
-
-//-------------------------------------------------------------
-// int16_t max_value = 20020;
-// int16_t min_value = -20020;
-
-// void loop()
-// {
-//   for (uint16_t i = 0; i <= 3600; i++)
-//   {
-//     lcd.set_timer(i);
-//     delay(500);
-//   }
-//   for (uint16_t i = 0; i >= 3600; i--)
-//   {
-//     lcd.set_timer(i);
-//     delay(500);
-//   }
-
-//   for (int16_t i = min_value; i <= max_value; i++)
-//   {
-//     lcd.set_value(i);
-//     Serial.print("Counter + = ");
-//     Serial.println(i);
-//     delay(100);
-//   }
-//   for (int16_t i = max_value; i >= min_value; i--)
-//   {
-//     lcd.set_value(i);
-//     Serial.print("Counter - = ");
-//     Serial.println(i);
-//     delay(100);
-//   }
-// }
