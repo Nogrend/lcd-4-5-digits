@@ -1,4 +1,4 @@
-#define A0 0 // ADC0
+#define A0 17 // #define A0 0 // ADC0 ???
 #define D0 16
 #define D1 5
 #define D2 4
