@@ -1,13 +1,19 @@
 #include <Arduino.h>
 #include <LCD_4_5_Digits.h>
 #include <esp8266_gpio_mapping.h>
-#include <DS3231.h>
-#include <Wire.h>
+// #include <DS3231.h>
+// #include <Wire.h>
+#include <ESP8266WiFi.h>
+#include <PubSubClient.h>
+#include "../login.h"
 
 // 0x57
 // 0x68
 
 // prototype
+void setup_wifi(void);
+void callback(String topic, byte *message, uint32_t length);
+void reconnect(void);
 // void updateShiftRegister();
 
 // 21, 22, 23 // example
@@ -30,52 +36,78 @@ uint8_t clockPin = D6; // 2
 uint8_t dataPin = D7;  // 3
 
 LCD_4_5_Digits lcd(latchPin, clockPin, dataPin);
-DS3231 real_time_clock;
 
-bool h12Flag;
-bool pmFlag;
+const char *ssid = SSID;
+const char *password = SSID_PASSWORD;
+const char *mqtt_server = MQTT_SERVER;
+
+WiFiClient phaseThreeClient;
+PubSubClient client(phaseThreeClient);
 
 void setup()
 {
-  Serial.begin(9600);
+  // Serial.begin(9600);
+  Serial.println("let's start");
   lcd.init();
-  Wire.begin();
-
-  delay(5000);
-  Serial.print(real_time_clock.getHour(h12Flag, pmFlag), DEC); // 24-hr
-  Serial.print(":");
-  Serial.print(real_time_clock.getMinute(), DEC);
-  Serial.print(":");
-  Serial.println(real_time_clock.getSecond(), DEC);
-
-  delay(10000);
-
-  Serial.print(real_time_clock.getHour(h12Flag, pmFlag), DEC); // 24-hr
-  Serial.print(":");
-  Serial.print(real_time_clock.getMinute(), DEC);
-  Serial.print(":");
-  Serial.println(real_time_clock.getSecond(), DEC);
-
-  delay(10000);
+  lcd.set_value(10801);
+  setup_wifi();
+  client.setServer(mqtt_server, 1883);
+  client.setCallback(callback);
 }
-
-int16_t max_value = 20010;
-int16_t min_value = -20010;
 
 void loop()
 {
-  for (int16_t i = max_value; i >= min_value; i--)
+  if (!client.connected())
   {
-    lcd.set_value(i);
-    Serial.print("Counter - = ");
-    Serial.println(i);
-    delay(100);
+    reconnect();
   }
-  for (int16_t i = min_value; i <= max_value; i++)
+  if (!client.loop())
+    client.connect("phaseThreeClient");
+  // uint16_t light_sensor_value = analogRead(A0);
+  // lcd.set_value(light_sensor_value);
+  delay(500);
+}
+
+void setup_wifi(void)
+{
+  delay(10);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED)
   {
-    lcd.set_value(i);
-    Serial.print("Counter + = ");
-    Serial.println(i);
-    delay(100);
+    // Serial.print(".");
+    delay(500);
+  }
+}
+
+void callback(String topic, byte *message, uint32_t length)
+{
+  String messageTemp;
+
+  for (uint32_t i = 0; i < length; i++)
+  {
+    messageTemp += (char)message[i];
+  }
+
+  if (topic == "energy_meter/data_6")
+  {
+    float powerMeterPhaseThreeFloat = messageTemp.toFloat();
+    uint16_t powerMeterPhaseThreeInt = uint16_t(powerMeterPhaseThreeFloat * 1000);
+    lcd.set_value(powerMeterPhaseThreeInt);
+  }
+}
+
+void reconnect(void)
+{
+  while (!client.connected())
+  {
+    if (client.connect("phaseThreeClient"))
+    {
+      client.subscribe("energy_meter/data_6");
+    }
+    else
+    {
+      // Serial.println("reconnect, moment please");
+      delay(5000);
+    }
   }
 }
