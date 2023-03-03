@@ -75,23 +75,29 @@ void LCD_4_5_Digits::set_float(float value, uint8_t decimals)
 {
 
     /*                dec
-    -1.9999 ~ 1.9999 | 4
-    -19.999 ~ 19.999 | 3
-    -199.99 ~ 199.99 | 2
-    -1999.9 ~ 1999.9 | 1
+    -1.9999 ~ 1.9999 | 4 10000 -> geen leading zero
+    -19.999 ~ 19.999 | 3  1000
+    -199.99 ~ 199.99 | 2   100
+    -1999.9 ~ 1999.9 | 1    10
     */
 
-    //    _value_lcd[0] =
 
-    //    float rounded = ceilf(value * _round_multiplier[decimals]) / _round_multiplier[decimals];
+    int16_t rounded = (int16_t)roundf(value * _round_multiplier[decimals]);
 
-    _set_decimal_dot(true, 1);
-    _show_lcd();
-    delay(500);
-    _set_decimal_dot(false, 1);
-    _show_lcd();
-    delay(500);
+    _set_minus_sign_if_negative(rounded);
 
+    _abs_value = abs(rounded);
+
+    _value_lcd[0] = _abs_value % 10;          // units
+    _value_lcd[1] = (_abs_value / 10) % 10;   // tens
+    _value_lcd[2] = (_abs_value / 100) % 10;  // hundreds
+    _value_lcd[3] = (_abs_value / 1000) % 10; // thousands
+    _value_lcd[4] = _abs_value / 10000;       // ten thousands
+
+    _show_value_on_display();
+
+    // how set leading zero -> 0.1 -> .1    && !(_value_to_set_lcd[i+1] & (1 << 7))??
+    _set_decimal_dot(true, decimals);
 
     // if (_is_value_valid(value))
     // {
@@ -181,9 +187,9 @@ void LCD_4_5_Digits::_set_colon_right(bool show)
 void LCD_4_5_Digits::_set_decimal_dot(bool show, uint8_t dot_position)
 {
     if (show)
-        _value_to_set_lcd[dot_position] |= _symbol[DOT];
+        _value_to_set_lcd[4-dot_position] |= _symbol[DOT];
     else
-        _value_to_set_lcd[dot_position] &= ~_symbol[DOT];
+        _value_to_set_lcd[4-dot_position] &= ~_symbol[DOT];
 }
 
 void LCD_4_5_Digits::_show_time_on_display(void)
@@ -211,6 +217,5 @@ void LCD_4_5_Digits::_show_value_on_display(void)
         _value_to_set_lcd[0] &= ~_symbol[NUMBER_1];
         _remove_unnecessary_zeros();
     }
-
     _show_lcd();
 }

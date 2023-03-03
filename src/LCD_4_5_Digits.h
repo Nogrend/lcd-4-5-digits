@@ -48,7 +48,7 @@ private:
     uint8_t _value_to_set_lcd[5] = {0x00, 0x00, 0x00, 0x00, 0x00};
     uint16_t _abs_value;
 
-    uint16_t _round_multiplier[5] = {1, 10, 100, 1000, 10000};
+    uint16_t _round_multiplier[4] = {10, 100, 1000, 10000};
 
     void _show_lcd(void);
     void _show_time_on_display(void);
