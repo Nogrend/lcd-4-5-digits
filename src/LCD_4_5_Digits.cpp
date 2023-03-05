@@ -63,6 +63,7 @@ void LCD_4_5_Digits::set_integer(int16_t value)
         _value_lcd[4] = _abs_value / 10000;       // ten thousands
 
         _show_value_on_display();
+        _show_lcd();
     }
     else
     {
