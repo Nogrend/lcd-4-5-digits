@@ -47,17 +47,19 @@ private:
 
     uint8_t _value_to_set_lcd[5] = {0x00, 0x00, 0x00, 0x00, 0x00};
     uint16_t _abs_value;
+    bool _isFloat = false;
 
     uint16_t _round_multiplier[4] = {10, 100, 1000, 10000};
 
     void _show_lcd(void);
     void _show_time_on_display(void);
     void _show_value_on_display(void);
+    void _show_float_on_display(void);
     void _set_overflow(void);
     void _set_minus_sign_if_negative(int16_t value);
     bool _is_integer_valid(int16_t value);
     bool _is_float_valid(float value);
-    void _remove_unnecessary_zeros(void);
+    void _removeLeadingZeros();
     void _set_colon_right(bool show = true);
     void _set_decimal_dot(bool show = true, uint8_t dot_position = 1);
 
