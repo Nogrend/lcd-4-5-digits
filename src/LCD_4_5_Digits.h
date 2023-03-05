@@ -47,9 +47,8 @@ private:
 
     uint8_t _value_to_set_lcd[5] = {0x00, 0x00, 0x00, 0x00, 0x00};
     uint16_t _abs_value;
-    bool _isFloat = false;
 
-    uint16_t _round_multiplier[4] = {10, 100, 1000, 10000};
+    uint16_t _round_multiplier[5] = {1, 10, 100, 1000, 10000};
 
     void _show_lcd(void);
     void _show_time_on_display(void);
@@ -58,10 +57,9 @@ private:
     void _set_overflow(void);
     void _set_minus_sign_if_negative(int16_t value);
     bool _is_integer_valid(int16_t value);
-    bool _is_float_valid(float value);
     void _removeLeadingZeros();
     void _set_colon_right(bool show = true);
-    void _set_decimal_dot(bool show = true, uint8_t dot_position = 1);
+    void _set_decimal_dot(uint8_t dot_position = 1);
 
 public:
     LCD_4_5_Digits(uint8_t latch, uint8_t clock, uint8_t data);
@@ -71,9 +69,7 @@ public:
     void all_on(void);
     void set_integer(int16_t value = 0);
     void set_float(float value = 0.0, uint8_t decimals = 1);
-    void show_value(bool show = true);
     void set_timer(uint16_t time = 0);
-    void show_timer(bool show = true);
 };
 
 #endif
