@@ -49,9 +49,9 @@ void LCD_4_5_Digits::all_on(void)
     _show_lcd();
 }
 
-void LCD_4_5_Digits::set_value(int16_t value)
+void LCD_4_5_Digits::set_integer(int16_t value)
 {
-    if (_is_value_valid(value))
+    if (_is_integer_valid(value))
     {
         _set_minus_sign_if_negative(value);
         _abs_value = abs(value);
@@ -63,12 +63,54 @@ void LCD_4_5_Digits::set_value(int16_t value)
         _value_lcd[4] = _abs_value / 10000;       // ten thousands
 
         _show_value_on_display();
+        _removeLeadingZeros();
+        _show_lcd();
     }
     else
     {
         _set_overflow();
     }
-    _show_lcd();
+}
+
+void LCD_4_5_Digits::set_float(float value, uint8_t decimals)
+{
+    /*                dec
+    -1.9999 ~ 1.9999 | 4 10000 -> no leading zero
+    -19.999 ~ 19.999 | 3  1000
+    -199.99 ~ 199.99 | 2   100
+    -1999.9 ~ 1999.9 | 1    10
+    */
+
+    int16_t rounded = (int16_t)roundf(value * _round_multiplier[decimals]);
+
+    if (_is_integer_valid(rounded))
+    {
+        if (decimals != 0)
+        {
+            _set_minus_sign_if_negative(rounded);
+
+            _abs_value = abs(rounded);
+            _value_lcd[0] = _abs_value % 10;          // units
+            _value_lcd[1] = (_abs_value / 10) % 10;   // tens
+            _value_lcd[2] = (_abs_value / 100) % 10;  // hundreds
+            _value_lcd[3] = (_abs_value / 1000) % 10; // thousands
+            _value_lcd[4] = _abs_value / 10000;       // ten thousands
+
+            _show_value_on_display();
+            _set_decimal_dot(decimals);
+            _removeLeadingZeros();
+
+            _show_lcd();
+        }
+        else
+        {
+            set_integer(rounded);
+        }
+    }
+    else
+    {
+        _set_overflow();
+    }
 }
 
 void LCD_4_5_Digits::_set_overflow(void)
@@ -78,6 +120,7 @@ void LCD_4_5_Digits::_set_overflow(void)
     {
         _value_to_set_lcd[i] = 0b01000000;
     }
+    _show_lcd();
 }
 
 void LCD_4_5_Digits::_set_minus_sign_if_negative(int16_t value)
@@ -88,18 +131,18 @@ void LCD_4_5_Digits::_set_minus_sign_if_negative(int16_t value)
         _value_to_set_lcd[0] &= ~_symbol[MINUS];
 }
 
-bool LCD_4_5_Digits::_is_value_valid(int16_t value)
+bool LCD_4_5_Digits::_is_integer_valid(int16_t value)
 {
     if (value >= -19999 && value <= 19999)
         return true;
     return false;
 }
 
-void LCD_4_5_Digits::_remove_unnecessary_zeros(void)
+void LCD_4_5_Digits::_removeLeadingZeros()
 {
     for (uint8_t i = 1; i < 4; i++)
     {
-        if (_value_to_set_lcd[i] == _number[0])
+        if (_value_to_set_lcd[i] == _number[0] && !(_value_to_set_lcd[i + 1] >> 7 == 0b1))
             _value_to_set_lcd[i] = 0b00000000;
         else
             break;
@@ -129,6 +172,15 @@ void LCD_4_5_Digits::_set_colon_right(bool show)
         _value_to_set_lcd[0] &= ~_symbol[COLON_RIGHT];
 }
 
+void LCD_4_5_Digits::_set_decimal_dot(uint8_t dot_position)
+{
+    _value_to_set_lcd[5 - dot_position] |= _symbol[DOT];
+    if (_value_to_set_lcd[4 - dot_position] == 0b00000000 && dot_position != 4)
+    {
+        _value_to_set_lcd[4 - dot_position] = _number[0];
+    }
+}
+
 void LCD_4_5_Digits::_show_time_on_display(void)
 {
     for (uint8_t i = 0; i < 4; i++)
@@ -152,8 +204,5 @@ void LCD_4_5_Digits::_show_value_on_display(void)
     else
     {
         _value_to_set_lcd[0] &= ~_symbol[NUMBER_1];
-        _remove_unnecessary_zeros();
     }
-
-    _show_lcd();
 }
